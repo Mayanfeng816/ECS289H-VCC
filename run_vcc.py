@@ -87,6 +87,7 @@ def main(args):
       correct_incorect=args.correct_incorect,
       save_acts=args.save_acts)
 
+    print("ConceptDiscovery model device:", next(cd.model.parameters()).device)
 
     print('Creating the dataset of feature segments for all layers')
     start = time.time()
