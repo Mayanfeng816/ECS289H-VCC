@@ -87,7 +87,6 @@ def main(args):
       correct_incorect=args.correct_incorect,
       save_acts=args.save_acts)
 
-    print("ConceptDiscovery model device:", next(cd.model.parameters()).device)
 
     print('Creating the dataset of feature segments for all layers')
     start = time.time()
@@ -154,16 +153,22 @@ def parse_arguments(argv):
     """Parses the arguments passed to the run.py script."""
     parser = argparse.ArgumentParser()
 
-    # saving args
+    parser.add_argument('--target_class', type=str,
+                    help='ImageNet class directory name', required=True)
+    
     parser.add_argument('--working_dir', type=str,
-                        help='Directory to save the results_summaries.', default='outputs/R50_Zebra')
+                    help='Directory to save the results_summaries.')
+
+    # saving args
+    #parser.add_argument('--working_dir', type=str,
+                        #help='Directory to save the results_summaries.', default='outputs/R50_Zebra')
 
     # data args
     parser.add_argument('--random_dir', type=str,
     help='''Directory where the random image folders are saved.''', default='data')
-    parser.add_argument('--target_dataset', type=str, default='imagenet',
+    parser.add_argument('--target_dataset', type=str, default='dataset',
                         help='Dataset being analyzed. Only works for imagenet currently')
-    parser.add_argument('--imagenet_path', type=str, default='/home/m2kowal/data/imagenet/val',
+    parser.add_argument('--imagenet_path', type=str, default='./dataset',
                         help='Path to the imagenet dataset')
     parser.add_argument('--labels_path', type=str,
                         help='Path to imagenet labels json file.', default='./imagenet_class_index.json')
@@ -181,8 +186,8 @@ def parse_arguments(argv):
     # VCC computation args
     parser.add_argument('--cav_imgs',  type=str,
         help='Type of img to use with cavs (images | patches)', default='images')
-    parser.add_argument('--target_class', type=str,
-        help='The name of the target class to be interpreted', default='zebra')
+    #parser.add_argument('--target_class', type=str,
+        #help='The name of the target class to be interpreted', default='stage')
     parser.add_argument('--sp_method', type=str, default='MBKM',
         help='The superpixel method used for creating image patches in feature space. (slic | KM | MBKM | DB | HC)')
     parser.add_argument('--mbkm_batch_size', type=int, default=64,
@@ -235,7 +240,12 @@ def parse_arguments(argv):
     # Parallelization
     parser.add_argument('--cluster_parallel_workers', type=int,help="Number of parallel jobs for clustering.", default=8)
 
-    return parser.parse_args(argv)
+    args = parser.parse_args()
+    if args.working_dir is None:
+        args.working_dir = f"outputs/VCC_original/R50_{args.target_class}"
+
+    # return parser.parse_args(argv)
+    return args
 
 
 if __name__ == '__main__':

@@ -1367,7 +1367,6 @@ def make_model(settings, hook=True):
     model = timm.create_model('resnet18', pretrained=settings.pretrained)
   elif settings.model_to_run == 'resnet50':
     model = timm.create_model('resnet50', pretrained=settings.pretrained)
-    model = model.to("cuda")
   elif settings.model_to_run == 'vgg11':
     model = timm.create_model('vgg11', pretrained=settings.pretrained)
   elif settings.model_to_run == 'vgg16':
