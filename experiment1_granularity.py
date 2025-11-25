@@ -2,126 +2,115 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-"""
-Experiment 1: Layerwise Granularity Trend
------------------------------------------
-Goal:
-    Compare the segmentation granularity (patch size) across layers
-    between Original VCC vs Adaptive VCC.
+########################################
+#             USER CONFIG              #
+########################################
 
-Required folder structure:
+CLASS_NAME = "R50_house_finch"   # 你自己的类别
+ROOT = "outputs"
 
-outputs/
-    VCC_original/
-        CLASSNAME/
-            dataset/images/layer1/*.npy
-            dataset/images/layer2/*.npy
-            dataset/images/layer3/*.npy
-            dataset/images/layer4/*.npy
+DIR_ORI = os.path.join(ROOT, "VCC_original", CLASS_NAME, "dataset", "patches")
+DIR_ADA = os.path.join(ROOT, "VCC_adaptive", CLASS_NAME, "dataset", "patches")
 
-    VCC_adaptive/
-        CLASSNAME/
-            dataset/images/layer1/*.npy
-            dataset/images/layer2/*.npy
-            dataset/images/layer3/*.npy
-            dataset/images/layer4/*.npy
-"""
-
-############################
-#      USER SETTINGS       #
-############################
-
-CLASS_NAME = "house_finch"   # 要分析的类别，例如 house_finch、zebra
-OUTPUT_ROOT = "outputs"      # 整理好的 output 根目录
-
-ORIGINAL_DIR = os.path.join(OUTPUT_ROOT, "VCC_original", CLASS_NAME)
-ADAPTIVE_DIR = os.path.join(OUTPUT_ROOT, "VCC_adaptive", CLASS_NAME)
-
-LAYERS = ["layer1", "layer2", "layer3", "layer4"]   # ResNet50 示例
+LAYERS = ["layer1", "layer2", "layer3", "layer4"]
 
 
-############################
-#   Helper: load .npy     #
-############################
-def load_patch_sizes(layer_folder):
-    """
-    Returns a list of pixel counts of all segmentation masks in this layer.
-    Each .npy is a segmentation mask of shape (H, W, 3) or (H, W).
-    """
-    sizes = []
-    for file in os.listdir(layer_folder):
-        if file.endswith(".npy"):
-            path = os.path.join(layer_folder, file)
-            try:
-                arr = np.load(path)
-                sizes.append(arr.shape[0] * arr.shape[1])   # pixel count
-            except:
-                continue
-    return sizes
+########################################
+#        LOAD SEGMENT STATISTICS       #
+########################################
 
-
-############################
-#  Compute layer curves    #
-############################
-def compute_stats(base_dir):
-    """
-    For each layer, compute (min, mean, max) patch size.
-    """
-    stats_min = []
-    stats_mean = []
-    stats_max = []
+def collect_stats(version_dir):
+    layer_stats = {}
 
     for layer in LAYERS:
-        layer_path = os.path.join(base_dir, "dataset", "images", layer)
-        if not os.path.exists(layer_path):
-            print(f"[WARNING] Missing layer folder: {layer_path}")
-            stats_min.append(0)
-            stats_mean.append(0)
-            stats_max.append(0)
-            continue
+        layer_path = os.path.join(version_dir, layer)
+        sizes = []
 
-        sizes = load_patch_sizes(layer_path)
-        if len(sizes) == 0:
-            stats_min.append(0)
-            stats_mean.append(0)
-            stats_max.append(0)
+        for fname in os.listdir(layer_path):
+            if fname.endswith(".npy"):
+                arr = np.load(os.path.join(layer_path, fname))
+                seg_pixels = np.sum(arr > 0)
+                sizes.append(seg_pixels)
+
+        if sizes:
+            layer_stats[layer] = {
+                "count": len(sizes),
+                "min": int(np.min(sizes)),
+                "mean": float(np.mean(sizes)),
+                "max": int(np.max(sizes)),
+                "example_shape": arr.shape
+            }
         else:
-            stats_min.append(np.min(sizes))
-            stats_mean.append(np.mean(sizes))
-            stats_max.append(np.max(sizes))
-
-    return stats_min, stats_mean, stats_max
+            layer_stats[layer] = {"count": 0}
+    return layer_stats
 
 
-print("🔍 Computing Original VCC stats...")
-orig_min, orig_mean, orig_max = compute_stats(ORIGINAL_DIR)
+########################################
+#             PRINT RESULTS            #
+########################################
 
-print("🔍 Computing Adaptive VCC stats...")
-adapt_min, adapt_mean, adapt_max = compute_stats(ADAPTIVE_DIR)
+print("\n===== ORIGINAL PATCHES =====")
+stats_ori = collect_stats(DIR_ORI)
+for layer in LAYERS:
+    print(layer, stats_ori[layer])
+
+print("\n===== ADAPTIVE PATCHES =====")
+stats_ada = collect_stats(DIR_ADA)
+for layer in LAYERS:
+    print(layer, stats_ada[layer])
 
 
-############################
-#      Plot curves         #
-############################
-plt.figure(figsize=(10, 6))
+########################################
+#          NORMALIZATION (NEW!)        #
+########################################
 
-x = range(1, len(LAYERS)+1)
+full_pixels = 224 * 224 * 3
 
-plt.plot(x, orig_mean, marker='o', label="Original - Mean Patch Size")
-plt.plot(x, adapt_mean, marker='o', label="Adaptive - Mean Patch Size")
+ori_mean = [stats_ori[layer]["mean"] for layer in LAYERS]
+ada_mean = [stats_ada[layer]["mean"] for layer in LAYERS]
+ori_min = [stats_ori[layer]["min"] for layer in LAYERS]
+ada_min = [stats_ada[layer]["min"] for layer in LAYERS]
+ori_max = [stats_ori[layer]["max"] for layer in LAYERS]
+ada_max = [stats_ada[layer]["max"] for layer in LAYERS]
 
-plt.fill_between(x, orig_min, orig_max, alpha=0.2, label="Original min-max")
-plt.fill_between(x, adapt_min, adapt_max, alpha=0.2, label="Adaptive min-max")
+ori_mean_norm = [v / full_pixels for v in ori_mean]
+ada_mean_norm = [v / full_pixels for v in ada_mean]
+ori_min_norm = [v / full_pixels for v in ori_min]
+ada_min_norm = [v / full_pixels for v in ada_min]
+ori_max_norm = [v / full_pixels for v in ori_max]
+ada_max_norm = [v / full_pixels for v in ada_max]
+
+
+########################################
+#           BEAUTIFIED PLOT            #
+########################################
+
+x = np.arange(len(LAYERS))
+x_shift = x + 0.07  # 🔥 错位，让 Adaptive 和 Original 分开
+
+plt.figure(figsize=(14, 7))
+
+# 1. Original —— 蓝色、细一点
+plt.plot(x, ori_mean_norm, marker='o', linewidth=1.3, color="#1f77b4",
+         label="Original Mean Patch Size (%)")
+plt.fill_between(x, ori_min_norm, ori_max_norm, alpha=0.30, color="#1f77b4",
+                 label="Original Min-Max (%)")
+
+# 2. Adaptive —— 橙色、加粗、偏移
+plt.plot(x_shift, ada_mean_norm, marker='o', linewidth=3.2, color="#ff7f0e",
+         label="Adaptive Mean Patch Size (%)")
+plt.fill_between(x_shift, ada_min_norm, ada_max_norm, alpha=0.15, color="#ff7f0e",
+                 label="Adaptive Min-Max (%)")
 
 plt.xticks(x, LAYERS)
 plt.xlabel("Layer")
-plt.ylabel("Patch Pixel Count")
-plt.title(f"Experiment 1: Layerwise Granularity Trend ({CLASS_NAME})")
+plt.ylabel("Patch Size (Fraction of Image)")
+plt.title(f"Experiment 1: Granularity Trend ({CLASS_NAME}) [Adaptive Highlighted]")
+plt.grid(True, linestyle='--', alpha=0.5)
 plt.legend()
-plt.grid(True)
 
 plt.tight_layout()
-plt.savefig(f"granularity_trend_{CLASS_NAME}.png", dpi=300)
+plt.savefig(f"granularity_trend_highlight_adaptive_{CLASS_NAME}.png", dpi=300)
 plt.show()
 
-print("Experiment 1 completed. Figure saved.")
+print(f"\n✨ Saved: granularity_trend_highlight_adaptive_{CLASS_NAME}.png\n")

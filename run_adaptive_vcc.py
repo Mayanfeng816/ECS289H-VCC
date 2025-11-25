@@ -221,13 +221,13 @@ def parse_arguments(argv):
     # [ADAPTIVE_K] Adaptive-K options for Stage 1 feature-space segmentation
     parser.add_argument('--adaptive_k', action='store_true',
         help='Enable adaptive (dynamic) K for feature-space segmentation (Stage 1)')
-    parser.add_argument('--ak_alpha', type=float, default=10.0,
+    parser.add_argument('--ak_alpha', type=float, default=0.2,
         help='Sensitivity of adaptive K to (local_var / global_var)')
-    parser.add_argument('--ak_beta', type=float, default=3.0,
+    parser.add_argument('--ak_beta', type=float, default=1.0,
         help='Base cluster count offset for adaptive K')
     parser.add_argument('--ak_kmin', type=int, default=2,
         help='Minimum K (lower bound)')
-    parser.add_argument('--ak_kmax', type=int, default=15,
+    parser.add_argument('--ak_kmax', type=int, default=3,
         help='Maximum K (upper bound)')
     # Concept Discovery args
     parser.add_argument('--num_discovery_imgs', type=int,help="Number of discovery images to use",default=50)
@@ -252,7 +252,7 @@ def parse_arguments(argv):
 
     args = parser.parse_args()
     if args.working_dir is None:
-        args.working_dir = f"outputs/adaptive-k/R50_{args.target_class}"
+        args.working_dir = f"outputs/VCC_adaptive/R50_{args.target_class}"
     # return parser.parse_args(argv)
     return args
 
