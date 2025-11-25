@@ -11,7 +11,7 @@ import torch
 import random
 
 import vcc_helpers
-from vcc import ConceptDiscovery, make_model
+from original_vcc import ConceptDiscovery, make_model
 
 # reproducibility
 seed = 0
