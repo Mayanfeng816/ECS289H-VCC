@@ -9,6 +9,7 @@ import numpy as np
 
 import torch
 import random
+
 import vcc_helpers
 from original_vcc import ConceptDiscovery, make_model
 
@@ -18,9 +19,6 @@ random.seed(seed)
 torch.manual_seed(seed)
 np.random.seed(seed)
 
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning,
-                        message=".*MiniBatchKMeans.*")
 def main(args):
     # Create the directories to store the results
     dataset_dir = os.path.join(args.working_dir, 'dataset/')
@@ -92,7 +90,7 @@ def main(args):
 
     print('Creating the dataset of feature segments for all layers')
     start = time.time()
-    cd.create_patches_top_down(n_top_clusters=None, resize_factor=args.resize_factor)  # [ADAPTIVE_K] pass None to enable adaptive K in vcc.py
+    cd.create_patches_top_down(n_top_clusters=int(args.num_segment_clusters[0]),resize_factor=args.resize_factor)
     end = time.time()
     print('Segment dataset creation took {:.2f} minutes'.format((end - start)/60))
 
@@ -154,13 +152,15 @@ def main(args):
 def parse_arguments(argv):
     """Parses the arguments passed to the run.py script."""
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--target_class', type=str,
                     help='ImageNet class directory name', required=True)
     
     parser.add_argument('--working_dir', type=str,
                     help='Directory to save the results_summaries.')
-
+   
+    # # saving args
+    # parser.add_argument('--working_dir', type=str,
+    #                     help='Directory to save the results_summaries.', default='outputs/adaptive-k/R50_Zebra')
 
     # data args
     parser.add_argument('--random_dir', type=str,
@@ -185,7 +185,8 @@ def parse_arguments(argv):
     # VCC computation args
     parser.add_argument('--cav_imgs',  type=str,
         help='Type of img to use with cavs (images | patches)', default='images')
-
+    # parser.add_argument('--target_class', type=str,
+    #     help='The name of the target class to be interpreted', default='zebra')
     parser.add_argument('--sp_method', type=str, default='MBKM',
         help='The superpixel method used for creating image patches in feature space. (slic | KM | MBKM | DB | HC)')
     parser.add_argument('--mbkm_batch_size', type=int, default=64,
@@ -217,18 +218,6 @@ def parse_arguments(argv):
     parser.add_argument('--img_shape', type=int, default=224, help='')
 
 
-    
-    # [ADAPTIVE_K] Adaptive-K options for Stage 1 feature-space segmentation
-    parser.add_argument('--adaptive_k', action='store_true',
-        help='Enable adaptive (dynamic) K for feature-space segmentation (Stage 1)')
-    parser.add_argument('--ak_alpha', type=float, default=10.0,
-        help='Sensitivity of adaptive K to (local_var / global_var)')
-    parser.add_argument('--ak_beta', type=float, default=3.0,
-        help='Base cluster count offset for adaptive K')
-    parser.add_argument('--ak_kmin', type=int, default=2,
-        help='Minimum K (lower bound)')
-    parser.add_argument('--ak_kmax', type=int, default=15,
-        help='Maximum K (upper bound)')
     # Concept Discovery args
     parser.add_argument('--num_discovery_imgs', type=int,help="Number of discovery images to use",default=50)
     parser.add_argument('--num_random_exp', type=int,help="Number of random experiments used for statistical testing, etc",default=20)
@@ -249,11 +238,10 @@ def parse_arguments(argv):
 
     # Parallelization
     parser.add_argument('--cluster_parallel_workers', type=int,help="Number of parallel jobs for clustering.", default=8)
-
     args = parser.parse_args()
     if args.working_dir is None:
-
         args.working_dir = f"outputs/VCC_original/R50_{args.target_class}"
+
     # return parser.parse_args(argv)
     return args
 

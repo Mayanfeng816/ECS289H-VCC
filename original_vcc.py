@@ -2,7 +2,6 @@ import gc
 import glob
 import copy
 import json
-import numpy as np  # [ADAPTIVE_K] added for variance computation
 import scipy.stats as stats
 import skimage.segmentation as segmentation
 import sklearn.cluster as cluster
@@ -15,7 +14,7 @@ from collections import OrderedDict
 from tcav import cav
 from vcc_helpers import *
 import models.clip as clip
-from tqdm import tqdm,trange
+from tqdm import tqdm
 from threadpoolctl import threadpool_limits
 import matplotlib.pyplot as plt
 class ConceptDiscovery(object):
@@ -217,13 +216,6 @@ class ConceptDiscovery(object):
       output[bn] = discovery_acts
 
 
-    # [ADAPTIVE_K] Pre-compute per-layer global variance for adaptive K (scalar per layer)
-    self.layer_var_stats = {}
-    for bn in self.bottlenecks:
-      acts = output[bn]  # (N, H, W, C)
-      flat = acts.reshape(-1, acts.shape[-1])
-      self.layer_var_stats[bn] = float(np.var(flat, axis=0).mean() + 1e-6)
-
     # hierarchical activation segmentation
     for fn in tqdm(range(len(output[bn]))):
       # create list of all activations
@@ -278,17 +270,7 @@ class ConceptDiscovery(object):
 
       # first cluster
       if i == 0:
-        if getattr(self.args, 'adaptive_k', False):  # [ADAPTIVE_K] top layer adaptive K
-          act_flat = act.reshape(-1, act.shape[-1])
-          local_var = float(np.var(act_flat, axis=0).mean())
-          global_var = getattr(self, 'layer_var_stats', {}).get(bn, local_var + 1e-6)
-          alpha = getattr(self.args, 'ak_alpha', 10.0)
-          beta  = getattr(self.args, 'ak_beta', 3.0)
-          Kmin  = getattr(self.args, 'ak_kmin', 2)
-          Kmax  = getattr(self.args, 'ak_kmax', 15)
-          n_top_clusters = int(alpha * (local_var / global_var) + beta)
-          n_top_clusters = max(Kmin, min(Kmax, n_top_clusters))
-        elif self.args.use_elbow:
+        if self.args.use_elbow:
           # use elbow method to determine the number of clusters
           if self.args.sp_method == 'MBKM':
             clust = cluster.MiniBatchKMeans(batch_size=self.args.mbkm_batch_size)
@@ -340,21 +322,7 @@ class ConceptDiscovery(object):
             mask_labels[bn].append(s)
       else:
         for mask_idx, mask in enumerate(masks[bn_list[i-1]]):
-          if getattr(self.args, 'adaptive_k', False):  # [ADAPTIVE_K] masked-region adaptive K
-            m = mask.astype(bool)
-            if m.sum() < 4:
-              n_segments = getattr(self.args, 'ak_kmin', 2)
-            else:
-              masked_feat = act[m].reshape(-1, act.shape[-1])
-              local_var = float(np.var(masked_feat, axis=0).mean())
-              global_var = getattr(self, 'layer_var_stats', {}).get(bn, local_var + 1e-6)
-              alpha = getattr(self.args, 'ak_alpha', 10.0)
-              beta  = getattr(self.args, 'ak_beta', 3.0)
-              Kmin  = getattr(self.args, 'ak_kmin', 2)
-              Kmax  = getattr(self.args, 'ak_kmax', 15)
-              n_segments = int(alpha * (local_var / global_var) + beta)
-              n_segments = max(Kmin, min(Kmax, n_segments))
-          elif self.args.use_elbow:
+          if self.args.use_elbow:
             if self.args.sp_method == 'MBKM':
               clust = cluster.MiniBatchKMeans(batch_size=self.args.mbkm_batch_size)
             else:
