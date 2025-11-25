@@ -124,4 +124,4 @@ plt.tight_layout()
 plt.savefig(f"granularity_trend_{CLASS_NAME}.png", dpi=300)
 plt.show()
 
-print("✅ Experiment 1 completed. Figure saved.")
+print("Experiment 1 completed. Figure saved.")
