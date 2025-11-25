@@ -9,13 +9,8 @@ import numpy as np
 
 import torch
 import random
-
 import vcc_helpers
-<<<<<<<< HEAD:run_adaptive_vcc.py
-from adaptive_vcc import ConceptDiscovery, make_model
-========
 from original_vcc import ConceptDiscovery, make_model
->>>>>>>> 91589b120052c788b96fbb02a733aa6135a60a91:run_original_vcc.py
 
 # reproducibility
 seed = 0
@@ -159,27 +154,13 @@ def main(args):
 def parse_arguments(argv):
     """Parses the arguments passed to the run.py script."""
     parser = argparse.ArgumentParser()
-<<<<<<<< HEAD:run_adaptive_vcc.py
-    
-========
 
->>>>>>>> 91589b120052c788b96fbb02a733aa6135a60a91:run_original_vcc.py
     parser.add_argument('--target_class', type=str,
                     help='ImageNet class directory name', required=True)
     
     parser.add_argument('--working_dir', type=str,
                     help='Directory to save the results_summaries.')
-<<<<<<<< HEAD:run_adaptive_vcc.py
-   
-    # # saving args
-    # parser.add_argument('--working_dir', type=str,
-    #                     help='Directory to save the results_summaries.', default='outputs/adaptive-k/R50_Zebra')
-========
 
-    # saving args
-    #parser.add_argument('--working_dir', type=str,
-                        #help='Directory to save the results_summaries.', default='outputs/R50_Zebra')
->>>>>>>> 91589b120052c788b96fbb02a733aa6135a60a91:run_original_vcc.py
 
     # data args
     parser.add_argument('--random_dir', type=str,
@@ -204,13 +185,7 @@ def parse_arguments(argv):
     # VCC computation args
     parser.add_argument('--cav_imgs',  type=str,
         help='Type of img to use with cavs (images | patches)', default='images')
-<<<<<<<< HEAD:run_adaptive_vcc.py
-    # parser.add_argument('--target_class', type=str,
-    #     help='The name of the target class to be interpreted', default='zebra')
-========
-    #parser.add_argument('--target_class', type=str,
-        #help='The name of the target class to be interpreted', default='stage')
->>>>>>>> 91589b120052c788b96fbb02a733aa6135a60a91:run_original_vcc.py
+
     parser.add_argument('--sp_method', type=str, default='MBKM',
         help='The superpixel method used for creating image patches in feature space. (slic | KM | MBKM | DB | HC)')
     parser.add_argument('--mbkm_batch_size', type=int, default=64,
@@ -277,12 +252,8 @@ def parse_arguments(argv):
 
     args = parser.parse_args()
     if args.working_dir is None:
-<<<<<<<< HEAD:run_adaptive_vcc.py
-        args.working_dir = f"outputs/adaptive-k/R50_{args.target_class}"
-========
-        args.working_dir = f"outputs/VCC_original/R50_{args.target_class}"
->>>>>>>> 91589b120052c788b96fbb02a733aa6135a60a91:run_original_vcc.py
 
+        args.working_dir = f"outputs/VCC_original/R50_{args.target_class}"
     # return parser.parse_args(argv)
     return args
 
