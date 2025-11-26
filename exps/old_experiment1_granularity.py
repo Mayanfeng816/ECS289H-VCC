@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 ########################################
 
 CLASS_NAME = "R50_house_finch"   # 你自己的类别
-ROOT = "outputs"
+ROOT = "./outputs"
 
 DIR_ORI = os.path.join(ROOT, "VCC_original", CLASS_NAME, "dataset", "patches")
 DIR_ADA = os.path.join(ROOT, "VCC_adaptive", CLASS_NAME, "dataset", "patches")
@@ -110,7 +110,7 @@ plt.grid(True, linestyle='--', alpha=0.5)
 plt.legend()
 
 plt.tight_layout()
-plt.savefig(f"granularity_trend_highlight_adaptive_{CLASS_NAME}.png", dpi=300)
+plt.savefig(f"./exp_outputs/old_granularity_trend_highlight_adaptive_{CLASS_NAME}.png", dpi=300)
 plt.show()
 
 print(f"\n✨ Saved: granularity_trend_highlight_adaptive_{CLASS_NAME}.png\n")
