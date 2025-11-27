@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 CLASS_NAME = "R50_house_finch"
-ROOT = "outputs"
+ROOT = "./outputs"
 
 DIR_ORI = os.path.join(ROOT, "VCC_original", CLASS_NAME, "dataset", "images")
 DIR_ADA = os.path.join(ROOT, "VCC_adaptive", CLASS_NAME, "dataset", "images")

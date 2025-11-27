@@ -11,7 +11,7 @@ synset_to_name = {v[0]: v[1] for v in idx_map.values()}
 # 你的目标文件夹路径（里面是 nxxxxxx 子文件夹）
 root = r"./dataset"
 
-output_txt = "imagenet_names.txt"
+output_txt = "./tools/imagenet_names.txt"
 
 names = []
 

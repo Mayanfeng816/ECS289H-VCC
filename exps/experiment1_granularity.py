@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 #             USER CONFIG              #
 ########################################
 
-ROOT = "outputs"
+ROOT = "./outputs"
 
 # 你的类别列表文件
 CLASS_LIST_FILE = "imagenet_names.txt"
 
 # 手动指定前 N 个类别
-NUM_CLASSES_TO_USE = 1   # 🔥 你只需要改这里即可
+NUM_CLASSES_TO_USE = 2   # 🔥 你只需要改这里即可
 
 # 如果你的文件夹叫 R50_house_finch / R50_stage，就用这个前缀
 CLASS_PREFIX = "R50_"
@@ -166,7 +166,7 @@ plt.legend()
 
 plt.tight_layout()
 out_name = f"exp1_multiclass_trend_top{NUM_CLASSES_TO_USE}.png"
-plt.savefig(out_name, dpi=300)
+plt.savefig("./exp_outputs/"+out_name, dpi=300)
 plt.show()
 
 print(f"✨ Saved figure as {out_name}")
