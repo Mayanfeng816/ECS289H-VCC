@@ -15,7 +15,7 @@ import argparse
 # -------------------------------
 def load_class_list(num_classes):
     """从 imagenet_names.txt 读取前 num_classes 个类（保持你 V2 原样）"""
-    fname = "./imagenet_names.txt"
+    fname = "./tools/imagenet_names.txt"
     classes = []
     with open(fname, "r") as f:
         for line in f:
@@ -143,7 +143,7 @@ def save_cache(data, out_dir="./cache/exp2"):
 # -------------------------------
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_classes", type=int, default=2,
+    parser.add_argument("--num_classes", type=int, default=10,
                         help="一次处理多少个类")
     args = parser.parse_args()
 

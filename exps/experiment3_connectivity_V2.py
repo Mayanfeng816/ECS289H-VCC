@@ -163,7 +163,7 @@ def load_class_list(num_limit):
 #############################################
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_classes", type=int, default=2,
+    parser.add_argument("--num_classes", type=int, default=10,
                         help="一次处理多少个类")
     args = parser.parse_args()
 

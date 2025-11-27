@@ -8,7 +8,7 @@ with open(name_file, "r") as f:
     # names = [line.strip() for line in f.readlines() if line.strip()]
 
     #现在是1-10，需要11-20改readlines()[10:20]
-    names = [line.strip() for line in f.readlines()[:20] if line.strip()]
+    names = [line.strip() for line in f.readlines()[:10] if line.strip()]
 
 # 逐个运行
 for cls in names:
