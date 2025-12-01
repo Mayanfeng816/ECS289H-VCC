@@ -2,4 +2,3 @@ outputs/
 dataset/
 __pycache__/
 checkpoints/
-cache/
