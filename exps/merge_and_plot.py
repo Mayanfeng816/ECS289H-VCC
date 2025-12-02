@@ -3,7 +3,16 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 import json   # 新增
+import csv
+import os
 
+def save_csv(path, header, rows):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(rows)
+    print(f"[CSV Saved] {path}")
 ############################################################
 # 工具：加载某个缓存目录
 ############################################################
@@ -119,6 +128,18 @@ def plot_exp1():
     plt.show()
     print("Saved: exp1_final.png")
 
+    # ===== CSV Export (Exp1) =====
+    csv_path = "./exp_outputs/csv/exp1_values.csv"
+    rows = []
+    for i, layer in enumerate(layers):
+        rows.append([
+            layer,
+            ori_mean[i], ori_std[i],
+            ada_mean[i], ada_std[i]
+        ])
+    save_csv(csv_path,
+             ["Layer", "Ori_Mean", "Ori_Std", "Ada_Mean", "Ada_Std"],
+             rows)
 
 
 ############################################################
@@ -194,6 +215,22 @@ def plot_exp2():
     plt.savefig("./exp_outputs/exp2_final.png", dpi=300)
     plt.show()
     print("Saved: exp2_final.png")
+    # ===== CSV Export: Exp2 Main =====
+    csv_path = "./exp_outputs/csv/exp2_values_main.csv"
+    rows = []
+    for i, layer in enumerate(layers):
+        rows.append([
+            layer,
+            cav_ori_mean[i], cav_ada_mean[i],
+            tcav_ori_mean[i], tcav_ada_mean[i],
+            sig_ori_mean[i], sig_ada_mean[i]
+        ])
+    save_csv(csv_path,
+             ["Layer",
+              "CAV_Ori", "CAV_Ada",
+              "TCAV_Ori", "TCAV_Ada",
+              "Sig_Ori", "Sig_Ada"],
+             rows)
 
     # ------------------- slope 图（ΔCAV per layer） -------------------
     # 对每个类先算一阶差分，再跨类平均
@@ -217,6 +254,15 @@ def plot_exp2():
     plt.savefig("./exp_outputs/exp2_slope_final.png", dpi=300)
     plt.show()
     print("Saved: exp2_slope_final.png")
+
+    csv_path = "./exp_outputs/csv/exp2_slope.csv"
+    slope_labels = [f"{layers[i]}->{layers[i+1]}" for i in range(L-1)]
+    rows = []
+    for i, name in enumerate(slope_labels):
+        rows.append([name, cav_ori_slope_mean[i], cav_ada_slope_mean[i]])
+    save_csv(csv_path,
+             ["Layer_Transition", "Slope_Ori", "Slope_Ada"],
+             rows)
 
     # ------------------- 二阶差分平滑度柱状图 -------------------
     # 对每个类：先求二阶差分，再对绝对值求和，得到「不平滑度」标量
@@ -244,6 +290,15 @@ def plot_exp2():
     plt.savefig("./exp_outputs/exp2_smoothness_final.png", dpi=300)
     plt.show()
     print("Saved: exp2_smoothness_final.png")
+
+    csv_path = "./exp_outputs/csv/exp2_smoothness.csv"
+    rows = [
+        ["Original", ori_second_mean],
+        ["Adaptive", ada_second_mean]
+    ]
+    save_csv(csv_path,
+             ["Type", "Second_Order_Smoothness"],
+             rows)
 
 
 
@@ -293,6 +348,21 @@ def plot_exp3():
     plt.show()
     print("Saved: exp3_final.png")
 
+
+    csv_path = "./exp_outputs/csv/exp3_values_main.csv"
+    rows = []
+    for i, layer in enumerate(layers):
+        rows.append([
+            layer,
+            ori_edge_mean[i], ada_edge_mean[i],
+            ori_density_mean[i], ada_density_mean[i],
+        ])
+    save_csv(csv_path,
+             ["Layer",
+              "Edge_Ori", "Edge_Ada",
+              "Density_Ori", "Density_Ada"],
+             rows)
+
     # ------------------- slope 图 -------------------
     ori_slope = np.array([d["ori_slope"] for d in data_list])
     ada_slope = np.array([d["ada_slope"] for d in data_list])
@@ -313,6 +383,16 @@ def plot_exp3():
     plt.show()
     print("Saved: exp3_slope_final.png")
 
+    csv_path = "./exp_outputs/csv/exp3_slope.csv"
+    slope_labels = [f"{layers[i]}->{layers[i+1]}" for i in range(len(layers)-1)]
+
+    rows = []
+    for i, name in enumerate(slope_labels):
+        rows.append([name, ori_slope_mean[i], ada_slope_mean[i]])
+    save_csv(csv_path,
+             ["Layer_Transition", "Slope_Ori", "Slope_Ada"],
+             rows)
+
     # ------------------- smoothness 图 -------------------
     ori_second = np.array([d["ori_second"] for d in data_list])
     ada_second = np.array([d["ada_second"] for d in data_list])
@@ -330,6 +410,15 @@ def plot_exp3():
     plt.savefig("./exp_outputs/exp3_smoothness_final.png", dpi=300)
     plt.show()
     print("Saved: exp3_smoothness_final.png")
+
+    csv_path = "./exp_outputs/csv/exp3_smoothness.csv"
+    rows = [
+        ["Original", ori_second_mean],
+        ["Adaptive", ada_second_mean]
+    ]
+    save_csv(csv_path,
+             ["Type", "Second_Order_Smoothness"],
+             rows)
 
 
 ############################################################
