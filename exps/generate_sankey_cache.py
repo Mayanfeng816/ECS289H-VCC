@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import sys
 
-# 让 pickle 找到 original_vcc / adaptive_vcc
+# let pickle find original_vcc / adaptive_vcc
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 LAYERS = ["layer1","layer2","layer3","layer4"]

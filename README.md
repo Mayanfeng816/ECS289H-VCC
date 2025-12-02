@@ -1,5 +1,6 @@
 # Enhancing Visual Concept Connectome with Adaptive Feature Granularity
 
+We fixed the model  `resnet50` with `--feature_names layer1 layer2 layer3 layer4`
 ## Steps to run this code
 we have already uploaded our cache, so It can jump to step 5
 1. Download dataset:

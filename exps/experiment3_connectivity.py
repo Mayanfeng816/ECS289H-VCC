@@ -10,9 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from typing import Any, List
 
 
-#############################################
 # Config
-#############################################
 CLASS_LIST_FILE = "./tools/imagenet_names.txt"
 ORI_ROOT = "./outputs/VCC_original"
 ADA_ROOT = "./outputs/VCC_adaptive"
@@ -22,17 +20,11 @@ LAYERS = ["layer1", "layer2", "layer3", "layer4"]
 EDGE_DENSITY_THRESH = 1e-6
 
 
-#############################################
-# 辅助函数：创建目录
-#############################################
 def ensure_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
 
-#############################################
-# 关键修复1：递归展开 edge_weights (旧版逻辑)
-#############################################
 def _flatten_numeric(x: Any, buf: List[float]):
     if x is None:
         return
@@ -54,9 +46,7 @@ def flatten_edges(edge_obj: Any) -> np.ndarray:
     return np.array(buf, dtype=float)
 
 
-#############################################
-# 关键修复2：读取 cd.pkl（适配真正的结构）
-#############################################
+
 def load_cd_pkl(path):
     if not os.path.exists(path):
         print(f"[Warning] cd.pkl missing: {path}")
@@ -86,9 +76,8 @@ def load_cd_pkl(path):
 
 
 
-#############################################
-# slope + 二阶差分
-#############################################
+
+# slope + second order difference
 def compute_slope(arr):
     arr = np.array(arr, dtype=float)
     return np.diff(arr)
@@ -99,9 +88,6 @@ def compute_second_order(arr):
     return np.sum(np.abs(np.diff(slope)))
 
 
-#############################################
-# 主流程：处理一个 class
-#############################################
 def process_one_class(classname):
     print(f"Processing Class: {classname}")
 
@@ -149,22 +135,16 @@ def process_one_class(classname):
     print(f"[OK] Saved cache → {CACHE_DIR}/{classname}.npy\n")
 
 
-#############################################
-# class list
-#############################################
 def load_class_list(num_limit):
     with open(CLASS_LIST_FILE, "r") as f:
         all_classes = [line.strip() for line in f.readlines()]
     return all_classes[:num_limit]
 
 
-#############################################
-# main
-#############################################
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_classes", type=int, default=10,
-                        help="一次处理多少个类")
+                        help="How many classes are processed at one time")
     args = parser.parse_args()
 
     class_list = load_class_list(args.num_classes)

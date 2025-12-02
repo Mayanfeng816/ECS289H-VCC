@@ -9,7 +9,7 @@ with open(name_file, "r") as f:
 
     names = [line.strip() for line in f.readlines()[:10] if line.strip()]
 
-# 逐个运行
+# Run one by one
 for cls in names:
     output_dir = f"outputs/VCC_adaptive/R50_{cls}"
     if os.path.exists(output_dir):
@@ -19,8 +19,7 @@ for cls in names:
     print(f" Running VCC for class: {cls}")
     print(f"==============================\n")
 
-    #运行代码改这里
     cmd = f'python run_adaptive_vcc.py --target_class "{cls}" --adaptive_k'
     os.system(cmd)
 
-print("\n🎉 All classes processed!")
+print("\n  All classes processed!")

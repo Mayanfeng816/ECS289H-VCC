@@ -1,20 +1,11 @@
-# ============================================
-#  Experiment 2 – Concept Stability (V2, fixed)
-#  保持你原版 V2 的结构、parser、load_class_list
-#  只修复 CAV / TCAV 解析方式
-# ============================================
-
 import os
 import json
 import numpy as np
 import argparse
 
 
-# -------------------------------
-#   保留 V2 的类加载方式
-# -------------------------------
 def load_class_list(num_classes):
-    """从 imagenet_names.txt 读取前 num_classes 个类（保持你 V2 原样）"""
+    """Read the first num_classes classes from imagenet_names.txt"""
     fname = "./tools/imagenet_names.txt"
     classes = []
     with open(fname, "r") as f:
@@ -25,9 +16,6 @@ def load_class_list(num_classes):
     return classes[:num_classes]
 
 
-# -------------------------------
-#   修复 CAV txt 解析
-# -------------------------------
 def load_cav_file(path):
     cav_vals = {}   # {layer: [acc_list]}
     if not os.path.exists(path):
@@ -45,16 +33,13 @@ def load_cav_file(path):
                 continue
 
             layer = parts[0].strip()
-            acc = float(parts[-1].strip())   # 最后一段是 accuracy
+            acc = float(parts[-1].strip())   # the last is accuracy
 
             cav_vals.setdefault(layer, []).append(acc)
 
     return cav_vals
 
 
-# -------------------------------
-#   修复 TCAV txt 解析
-# -------------------------------
 def load_tcav_file(path):
     tcav_score = {}     # {layer: [score_list]}
     tcav_p = {}         # {layer: [p_list]}
@@ -89,9 +74,6 @@ def load_tcav_file(path):
     return tcav_score, tcav_p
 
 
-# -------------------------------
-#  保持 V2 原格式的类处理逻辑
-# -------------------------------
 def process_one_class(class_name):
     print(f"Processing Class: {class_name}")
 
@@ -127,9 +109,6 @@ def process_one_class(class_name):
     }
 
 
-# -------------------------------
-#   缓存（保持 V2 原样）
-# -------------------------------
 def save_cache(data, out_dir="./cache/exp2"):
     os.makedirs(out_dir, exist_ok=True)
     fname = os.path.join(out_dir, f"{data['class']}.json")
@@ -138,13 +117,10 @@ def save_cache(data, out_dir="./cache/exp2"):
     print(f"[Saved] {fname}")
 
 
-# -------------------------------
-#  main (完全保留 V2 + 修复)
-# -------------------------------
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_classes", type=int, default=10,
-                        help="一次处理多少个类")
+                        help="How many classes are processed at one time")
     args = parser.parse_args()
 
     # 保留 V2 的类选择方式

@@ -13,9 +13,7 @@ def save_csv(path, header, rows):
         writer.writerow(header)
         writer.writerows(rows)
     print(f"[CSV Saved] {path}")
-############################################################
-# 工具：加载某个缓存目录
-############################################################
+
 def load_cache(cache_dir):
     data_list = []
     if not os.path.exists(cache_dir):
@@ -25,7 +23,7 @@ def load_cache(cache_dir):
     for fname in os.listdir(cache_dir):
         path = os.path.join(cache_dir, fname)
 
-        # 以前的 npy 缓存（Exp1 / 旧版 Exp2 / Exp3）
+        #  npy cache(Exp1 /Exp3
         if fname.endswith(".npy"):
             try:
                 data = np.load(path, allow_pickle=True).item()
@@ -33,7 +31,7 @@ def load_cache(cache_dir):
             except Exception as e:
                 print(f"[Warning] Failed to load {path}: {e}")
 
-        # 现在 Exp2_V2 存的 json
+        # json(Exp2)
         elif fname.endswith(".json"):
             try:
                 with open(path, "r") as f:
@@ -47,35 +45,9 @@ def load_cache(cache_dir):
 
 
 
-############################################################
+
 # EXP1 — Patch Granularity
-############################################################
-# def plot_exp1():
-    cache_dir = "./cache/exp1"
-    data_list = load_cache(cache_dir)
-    if len(data_list) == 0:
-        print("No Exp1 data found")
-        return
 
-    layers = data_list[0]["layers"]
-
-    ori_all = np.array([d["ori_mean"] for d in data_list])
-    ada_all = np.array([d["ada_mean"] for d in data_list])
-
-    ori_mean = np.nanmean(ori_all, axis=0)
-    ada_mean = np.nanmean(ada_all, axis=0)
-
-    plt.figure(figsize=(8,6))
-    plt.plot(layers, ori_mean, "-o", linewidth=2, label="Original")
-    plt.plot(layers, ada_mean, "-o", linewidth=2, label="Adaptive")
-    plt.title(f"Exp1: Patch Granularity (N={len(data_list)})")
-    plt.ylabel("Mean segmentation size")
-    plt.grid(True, linestyle="--", alpha=0.5)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("exp1_final.png", dpi=300)
-    plt.show()
-    print("Saved: exp1_final.png")
 def plot_exp1():
     cache_dir = "./cache/exp1"
     data_list = load_cache(cache_dir)
@@ -142,9 +114,7 @@ def plot_exp1():
              rows)
 
 
-############################################################
 # EXP2 — Concept Stability  (CAV/TCAV + slope + smoothness)
-############################################################
 def plot_exp2():
     cache_dir = "./cache/exp2"
     data_list = load_cache(cache_dir)
@@ -152,7 +122,7 @@ def plot_exp2():
         print("No Exp2 data found")
         return
 
-    # 所有类共享的 layer 名
+    # The shared layer name for all classes
     layers = data_list[0]["layers"]
     L = len(layers)
 
@@ -160,7 +130,7 @@ def plot_exp2():
         """把每个类的一维 list 堆成 (N, L) 的数组"""
         return np.array([d[key] for d in data_list], dtype=float)
 
-    # 从缓存里取出 CAV / TCAV / 显著比例
+    # Retrieve CAV / TCAV / significant proportion from the cache.
     cav_ori  = stack("cav_ori")
     cav_ada  = stack("cav_ada")
     tcav_ori = stack("tcav_ori")
@@ -168,7 +138,7 @@ def plot_exp2():
     sig_ori  = stack("sig_ori")   # fraction of significant concepts
     sig_ada  = stack("sig_ada")
 
-    # 跨类平均
+    # Cross-class average
     cav_ori_mean  = np.nanmean(cav_ori,  axis=0)
     cav_ada_mean  = np.nanmean(cav_ada,  axis=0)
     tcav_ori_mean = np.nanmean(tcav_ori, axis=0)
@@ -177,10 +147,9 @@ def plot_exp2():
     sig_ori_mean = np.nanmean(sig_ori, axis=0)
     sig_ada_mean = np.nanmean(sig_ada, axis=0)
 
-    # ------------------- 主图：CAV + TCAV -------------------
     plt.figure(figsize=(12, 8))
 
-    # 上：CAV ACE 准确率
+    # Upper: Accuracy of CAV ACE
     plt.subplot(2, 1, 1)
     plt.plot(layers, cav_ori_mean, "-o", linewidth=2, label="Original CAV acc")
     plt.plot(layers, cav_ada_mean, "-o", linewidth=2, label="Adaptive CAV acc")
@@ -189,7 +158,7 @@ def plot_exp2():
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.legend(loc="best")
 
-    # 下：TCAV 分数 + 显著比例 (右轴)
+    # Below: TCAV score + significant proportion (right axis)
     ax1 = plt.subplot(2, 1, 2)
     ln1 = ax1.plot(layers, tcav_ori_mean, "-o", linewidth=2,
                    label="Original TCAV score")
@@ -205,7 +174,7 @@ def plot_exp2():
                    label="Adaptive frac(p<0.05)")
     ax2.set_ylabel("Fraction of significant concepts")
 
-    # 合并双轴图例
+    # Merge the dual-axis legend
     lines = ln1 + ln2 + ln3 + ln4
     labels = [l.get_label() for l in lines]
     ax1.legend(lines, labels, loc="upper left")
@@ -232,8 +201,8 @@ def plot_exp2():
               "Sig_Ori", "Sig_Ada"],
              rows)
 
-    # ------------------- slope 图（ΔCAV per layer） -------------------
-    # 对每个类先算一阶差分，再跨类平均
+    # ------------------- slope （ΔCAV per layer） -------------------
+    # Calculate the first-order difference for each class first, and then take the average across classes.
     cav_ori_slope = np.diff(cav_ori, axis=1)  # (N, L-1)
     cav_ada_slope = np.diff(cav_ada, axis=1)
 
@@ -264,8 +233,8 @@ def plot_exp2():
              ["Layer_Transition", "Slope_Ori", "Slope_Ada"],
              rows)
 
-    # ------------------- 二阶差分平滑度柱状图 -------------------
-    # 对每个类：先求二阶差分，再对绝对值求和，得到「不平滑度」标量
+    # ------------------- Second-order difference smoothing degree histogram -------------------
+    # For each class: First, calculate the second-order difference, then sum the absolute values, and obtain the "smoothness degree" scalar.
     if L >= 3:
         cav_ori_second = np.diff(cav_ori, n=2, axis=1)   # (N, L-2)
         cav_ada_second = np.diff(cav_ada, n=2, axis=1)
@@ -276,7 +245,7 @@ def plot_exp2():
         ori_second_mean = float(np.nanmean(ori_second_per_class))
         ada_second_mean = float(np.nanmean(ada_second_per_class))
     else:
-        # 防御性：层数太少时给 0
+        # Defensive: 0 when the number of layers is too low
         ori_second_mean = 0.0
         ada_second_mean = 0.0
 
@@ -302,9 +271,8 @@ def plot_exp2():
 
 
 
-############################################################
+
 # EXP3 — Connectivity Consistency (edge weight + slope + smoothness)
-############################################################
 def plot_exp3():
     cache_dir = "./cache/exp3"
     data_list = load_cache(cache_dir)
@@ -326,7 +294,7 @@ def plot_exp3():
     ori_density_mean = np.nanmean(ori_density, axis=0)
     ada_density_mean = np.nanmean(ada_density, axis=0)
 
-    # ------------------- 主图 -------------------
+    # main pic
     plt.figure(figsize=(12,5))
 
     plt.subplot(1,2,1)
@@ -363,7 +331,7 @@ def plot_exp3():
               "Density_Ori", "Density_Ada"],
              rows)
 
-    # ------------------- slope 图 -------------------
+    # slope 
     ori_slope = np.array([d["ori_slope"] for d in data_list])
     ada_slope = np.array([d["ada_slope"] for d in data_list])
 
@@ -393,7 +361,7 @@ def plot_exp3():
              ["Layer_Transition", "Slope_Ori", "Slope_Ada"],
              rows)
 
-    # ------------------- smoothness 图 -------------------
+    # smoothness 
     ori_second = np.array([d["ori_second"] for d in data_list])
     ada_second = np.array([d["ada_second"] for d in data_list])
 
@@ -421,9 +389,7 @@ def plot_exp3():
              rows)
 
 
-############################################################
 # main
-############################################################
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=int, required=True, choices=[1,2,3],
