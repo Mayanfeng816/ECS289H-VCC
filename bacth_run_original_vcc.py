@@ -11,7 +11,7 @@ with open(name_file, "r") as f:
 
 # 逐个运行
 for cls in names:
-    output_dir = f"outputs/VCC_adaptive/R50_{cls}"
+    output_dir = f"outputs/VCC_original/R50_{cls}"
     if os.path.exists(output_dir):
         print(f"⏭  Skip {cls} (already exists)")
         continue
@@ -20,7 +20,7 @@ for cls in names:
     print(f"==============================\n")
 
     #运行代码改这里
-    cmd = f'python run_adaptive_vcc.py --target_class "{cls}" --adaptive_k'
+    cmd = f'python run_original_vcc.py --target_class "{cls}"'
     os.system(cmd)
 
 print("\n🎉 All classes processed!")
