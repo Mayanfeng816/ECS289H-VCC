@@ -1,7 +1,7 @@
 import os
 
 
-name_file = "imagenet_names.txt"
+name_file = "./tools/imagenet_names.txt"
 
 
 with open(name_file, "r") as f:
